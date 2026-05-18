@@ -1,0 +1,59 @@
+{
+  "name": "nanotron",
+  "version": "0.1.0",
+  "description": "Tiny Electron-like desktop framework for Node.js powered by the system WebView",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js"
+  },
+  "gypfile": true,
+  "type": "commonjs",
+  "scripts": {
+    "install": "node-gyp rebuild",
+    "build": "node-gyp rebuild",
+    "clean": "node-gyp clean",
+    "example": "node examples/basic-app/index.js",
+    "example:food": "node examples/food-order-app/index.js",
+    "example:menu": "node examples/custom-menu-app/index.js",
+    "example:notes": "node examples/notes-app/index.js",
+    "package:menu:win": "npm run build && node scripts/package-menu-win.js",
+    "smoke": "node -e \"const nanotron = require('./lib'); if (typeof nanotron.AppWindow !== 'function') process.exit(1)\""
+  },
+  "files": [
+    "binding.gyp",
+    "lib",
+    "src",
+    "examples",
+    "docs",
+    "CONTRIBUTING.md",
+    "vendor"
+  ],
+  "keywords": [
+    "desktop",
+    "gui",
+    "webview",
+    "webview2",
+    "electron-alternative",
+    "node-api",
+    "native-addon"
+  ],
+  "homepage": "https://github.com/PlayWright1337/nanotron#readme",
+  "bugs": {
+    "url": "https://github.com/PlayWright1337/nanotron/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PlayWright1337/nanotron.git"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "node-addon-api": "^8.7.0"
+  },
+  "devDependencies": {
+    "node-gyp": "^11.2.0",
+    "postject": "^1.0.0-alpha.6"
+  }
+}
