@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>NanoTron Custom Menu</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #101418;
+        color: #edf7f4;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--page-background, #101418);
+        color: var(--text-color, #edf7f4);
+      }
+
+      body[data-theme="light"] {
+        --page-background: #eef3f5;
+        --surface-color: #ffffff;
+        --surface-muted-color: #dfe8eb;
+        --text-color: #172126;
+        --text-muted-color: #60727a;
+        --button-color: #136f63;
+        --menu-hover-color: #e8f5f1;
+      }
+
+      body[data-theme="dark"] {
+        --page-background: #101418;
+        --surface-color: #172126;
+        --surface-muted-color: #24323a;
+        --text-color: #edf7f4;
+        --text-muted-color: #9bb0b7;
+        --button-color: #21a58f;
+        --menu-hover-color: #21343b;
+      }
+
+      .app {
+        display: grid;
+        grid-template-rows: auto 1fr;
+        min-height: 100vh;
+      }
+
+      .menu-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        border-bottom: 1px solid var(--surface-muted-color);
+        padding: 0 12px;
+        background: var(--surface-color);
+        user-select: none;
+      }
+
+      .menu-left,
+      .menu-right {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
+      }
+
+      .window-controls {
+        display: grid;
+        grid-template-columns: repeat(3, 42px);
+        height: 42px;
+      }
+
+      .brand {
+        padding: 13px 10px;
+        font-weight: 800;
+        white-space: nowrap;
+      }
+
+      .menu {
+        position: relative;
+      }
+
+      button {
+        border: 0;
+        border-radius: 8px;
+        color: inherit;
+        font: inherit;
+        cursor: pointer;
+      }
+
+      .menu-trigger,
+      .toolbar-button,
+      .window-control-button {
+        padding: 9px 11px;
+        background: transparent;
+      }
+
+      .menu-trigger:hover,
+      .menu-trigger:focus-visible,
+      .toolbar-button:hover,
+      .toolbar-button:focus-visible,
+      .window-control-button:hover,
+      .window-control-button:focus-visible {
+        outline: 0;
+        background: var(--menu-hover-color);
+      }
+
+      .window-control-button {
+        display: grid;
+        width: 42px;
+        height: 42px;
+        place-items: center;
+        border-radius: 0;
+        font-size: 16px;
+        line-height: 1;
+      }
+
+      .window-control-button[data-command="closeWindow"]:hover,
+      .window-control-button[data-command="closeWindow"]:focus-visible {
+        background: #c42b1c;
+        color: #ffffff;
+      }
+
+      .primary-button {
+        padding: 9px 13px;
+        background: var(--button-color);
+        color: #ffffff;
+        font-weight: 760;
+      }
+
+      .danger-button {
+        padding: 9px 12px;
+        background: #b42318;
+        color: #ffffff;
+      }
+
+      .menu-panel {
+        position: absolute;
+        z-index: 10;
+        top: calc(100% + 6px);
+        left: 0;
+        display: none;
+        min-width: 190px;
+        border: 1px solid var(--surface-muted-color);
+        border-radius: 8px;
+        padding: 6px;
+        background: var(--surface-color);
+        box-shadow: 0 18px 45px rgba(0, 0, 0, 0.28);
+      }
+
+      .menu[data-open="true"] .menu-panel {
+        display: grid;
+      }
+
+      .menu-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 9px 10px;
+        background: transparent;
+        text-align: left;
+      }
+
+      .menu-item:hover,
+      .menu-item:focus-visible {
+        outline: 0;
+        background: var(--menu-hover-color);
+      }
+
+      .shortcut {
+        color: var(--text-muted-color);
+        font-size: 12px;
+      }
+
+      main {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 280px;
+        gap: 18px;
+        padding: 20px;
+      }
+
+      .editor,
+      .panel {
+        display: grid;
+        align-content: start;
+        gap: 14px;
+        border: 1px solid var(--surface-muted-color);
+        border-radius: 8px;
+        padding: 18px;
+        background: var(--surface-color);
+      }
+
+      .document-header {
+        display: grid;
+        gap: 8px;
+      }
+
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        font-size: 26px;
+        line-height: 1.1;
+      }
+
+      h2 {
+        font-size: 16px;
+      }
+
+      input,
+      textarea {
+        box-sizing: border-box;
+        width: 100%;
+        border: 1px solid var(--surface-muted-color);
+        border-radius: 8px;
+        padding: 12px;
+        background: var(--page-background);
+        color: var(--text-color);
+        font: inherit;
+      }
+
+      textarea {
+        min-height: 340px;
+        resize: vertical;
+      }
+
+      .status {
+        min-height: 88px;
+        margin: 0;
+        border-radius: 8px;
+        padding: 12px;
+        overflow: auto;
+        background: var(--page-background);
+        color: var(--text-muted-color);
+      }
+
+      @media (max-width: 760px) {
+        .menu-bar {
+          align-items: stretch;
+          flex-direction: column;
+          padding: 8px;
+        }
+
+        .menu-left,
+        .menu-right {
+          flex-wrap: wrap;
+        }
+
+        main {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body data-theme="dark">
+    <div class="app">
+      <header class="menu-bar">
+        <div class="menu-left">
+          <div class="brand">NanoTron</div>
+          <div class="menu">
+            <button class="menu-trigger" type="button" aria-haspopup="true" aria-expanded="false">File</button>
+            <div class="menu-panel" role="menu">
+              <button class="menu-item" type="button" data-command="newDocument" role="menuitem">
+                <span>New document</span>
+                <span class="shortcut">Ctrl+N</span>
+              </button>
+              <button class="menu-item" type="button" data-command="saveDocument" role="menuitem">
+                <span>Save</span>
+                <span class="shortcut">Ctrl+S</span>
+              </button>
+              <button class="menu-item" type="button" data-command="closeWindow" role="menuitem">
+                <span>Close</span>
+                <span class="shortcut">Alt+F4</span>
+              </button>
+            </div>
+          </div>
+          <div class="menu">
+            <button class="menu-trigger" type="button" aria-haspopup="true" aria-expanded="false">View</button>
+            <div class="menu-panel" role="menu">
+              <button class="menu-item" type="button" data-command="toggleTheme" role="menuitem">
+                <span>Toggle theme</span>
+                <span class="shortcut">Ctrl+T</span>
+              </button>
+            </div>
+          </div>
+          <div class="menu">
+            <button class="menu-trigger" type="button" aria-haspopup="true" aria-expanded="false">Help</button>
+            <div class="menu-panel" role="menu">
+              <button class="menu-item" type="button" data-command="showAbout" role="menuitem">
+                <span>About</span>
+                <span class="shortcut">F1</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="menu-right">
+          <button class="toolbar-button" type="button" data-command="toggleTheme">Theme</button>
+          <button class="primary-button" type="button" data-command="saveDocument">Save</button>
+          <div class="window-controls" aria-label="Window controls">
+            <button class="window-control-button" type="button" data-command="minimizeWindow" aria-label="Minimize">-</button>
+            <button class="window-control-button" type="button" data-command="toggleMaximizeWindow" aria-label="Maximize">□</button>
+            <button class="window-control-button" type="button" data-command="closeWindow" aria-label="Close">×</button>
+          </div>
+        </div>
+      </header>
+      <main>
+        <section class="editor">
+          <div class="document-header">
+            <h1 id="document-title">Untitled</h1>
+            <input id="document-name" value="Untitled" autocomplete="off">
+          </div>
+          <textarea id="document-content">This menu is pure HTML. Every command goes through NanoTron bind handlers on the Node.js side.</textarea>
+        </section>
+        <aside class="panel">
+          <h2>Status</h2>
+          <p id="summary">Ready</p>
+          <pre class="status" id="status-output"></pre>
+        </aside>
+      </main>
+    </div>
+    <script>
+      const menus = Array.from(document.querySelectorAll(".menu"));
+      const documentTitle = document.getElementById("document-title");
+      const documentName = document.getElementById("document-name");
+      const documentContent = document.getElementById("document-content");
+      const summary = document.getElementById("summary");
+      const statusOutput = document.getElementById("status-output");
+
+      function closeMenus() {
+        for (const menu of menus) {
+          menu.dataset.open = "false";
+          menu.querySelector(".menu-trigger").setAttribute("aria-expanded", "false");
+        }
+      }
+
+      function openMenu(menu) {
+        const isOpen = menu.dataset.open === "true";
+        closeMenus();
+        menu.dataset.open = String(!isOpen);
+        menu.querySelector(".menu-trigger").setAttribute("aria-expanded", String(!isOpen));
+      }
+
+      function renderState(state) {
+        document.body.dataset.theme = state.theme;
+        documentTitle.textContent = state.documentName;
+        documentName.value = state.documentName;
+        summary.textContent = state.savedAt ? `Saved at ${new Date(state.savedAt).toLocaleTimeString()}` : "Ready";
+        statusOutput.textContent = JSON.stringify(state, null, 2);
+      }
+
+      async function runCommand(command) {
+        closeMenus();
+
+        if (command === "newDocument") {
+          documentContent.value = "";
+          renderState(await window.setDocumentName("Untitled"));
+          return;
+        }
+
+        if (command === "saveDocument") {
+          renderState(await window.setDocumentName(documentName.value));
+          renderState(await window.saveDocument(documentContent.value));
+          return;
+        }
+
+        if (command === "toggleTheme") {
+          renderState(await window.toggleTheme());
+          return;
+        }
+
+        if (command === "showAbout") {
+          statusOutput.textContent = JSON.stringify(await window.showAbout(), null, 2);
+          summary.textContent = "About NanoTron";
+          return;
+        }
+
+        if (command === "minimizeWindow") {
+          await window.minimizeWindow();
+          return;
+        }
+
+        if (command === "toggleMaximizeWindow") {
+          await window.toggleMaximizeWindow();
+          return;
+        }
+
+        if (command === "closeWindow") {
+          await window.closeWindow();
+        }
+      }
+
+      for (const menu of menus) {
+        menu.querySelector(".menu-trigger").addEventListener("click", () => openMenu(menu));
+      }
+
+      document.addEventListener("click", (event) => {
+        if (!event.target.closest(".menu")) {
+          closeMenus();
+        }
+      });
+
+      document.addEventListener("keydown", async (event) => {
+        if (event.key === "Escape") {
+          closeMenus();
+          return;
+        }
+
+        if (event.ctrlKey && event.key.toLowerCase() === "s") {
+          event.preventDefault();
+          await runCommand("saveDocument");
+          return;
+        }
+
+        if (event.ctrlKey && event.key.toLowerCase() === "n") {
+          event.preventDefault();
+          await runCommand("newDocument");
+          return;
+        }
+
+        if (event.ctrlKey && event.key.toLowerCase() === "t") {
+          event.preventDefault();
+          await runCommand("toggleTheme");
+          return;
+        }
+
+        if (event.key === "F1") {
+          event.preventDefault();
+          await runCommand("showAbout");
+        }
+      });
+
+      document.addEventListener("click", async (event) => {
+        const commandElement = event.target.closest("[data-command]");
+
+        if (commandElement) {
+          await runCommand(commandElement.dataset.command);
+        }
+      });
+
+      document.querySelector(".menu-bar").addEventListener("mousedown", async (event) => {
+        if (event.button !== 0) {
+          return;
+        }
+
+        if (event.target.closest("button, input, textarea, .menu-panel")) {
+          return;
+        }
+
+        await window.beginWindowDrag();
+      });
+
+      window.getApplicationState().then(renderState);
+    </script>
+  </body>
+</html>

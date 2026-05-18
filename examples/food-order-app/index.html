@@ -1,0 +1,763 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Forkline Kitchen</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #f3f6f2;
+        color: #17211c;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        overflow: hidden;
+        background: #f3f6f2;
+      }
+
+      button,
+      input,
+      select,
+      textarea {
+        font: inherit;
+      }
+
+      button {
+        border: 0;
+        cursor: pointer;
+      }
+
+      .shell {
+        display: grid;
+        grid-template-rows: 46px 1fr;
+        height: 100vh;
+      }
+
+      .titlebar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid #d9e2dc;
+        background: #ffffff;
+        user-select: none;
+      }
+
+      .titlebar-left {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        min-width: 0;
+        padding-left: 16px;
+      }
+
+      .mark {
+        display: grid;
+        width: 28px;
+        height: 28px;
+        place-items: center;
+        border-radius: 8px;
+        background: #1d7b5f;
+        color: #ffffff;
+        font-weight: 900;
+      }
+
+      .app-name {
+        font-weight: 850;
+        white-space: nowrap;
+      }
+
+      .location {
+        min-width: 0;
+        color: #66756d;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .window-controls {
+        display: grid;
+        grid-template-columns: repeat(3, 46px);
+        height: 46px;
+      }
+
+      .window-control {
+        display: grid;
+        place-items: center;
+        background: transparent;
+        color: #17211c;
+        font-size: 16px;
+      }
+
+      .window-control:hover {
+        background: #eaf1ed;
+      }
+
+      .window-control[data-command="closeWindow"]:hover {
+        background: #c42b1c;
+        color: #ffffff;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 240px minmax(0, 1fr) 360px;
+        min-height: 0;
+      }
+
+      .sidebar,
+      .cart {
+        min-height: 0;
+        overflow: auto;
+        background: #ffffff;
+      }
+
+      .sidebar {
+        border-right: 1px solid #d9e2dc;
+        padding: 18px;
+      }
+
+      .cart {
+        border-left: 1px solid #d9e2dc;
+        padding: 18px;
+      }
+
+      .content {
+        min-width: 0;
+        min-height: 0;
+        overflow: auto;
+        padding: 22px;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 300px;
+        gap: 18px;
+        margin-bottom: 18px;
+        border-radius: 8px;
+        padding: 22px;
+        background: #18261f;
+        color: #ffffff;
+      }
+
+      .hero h1,
+      .hero p {
+        margin: 0;
+      }
+
+      .hero h1 {
+        font-size: 34px;
+        line-height: 1.05;
+      }
+
+      .hero p {
+        color: #c8d9d1;
+      }
+
+      .hero-stats {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .hero-stat {
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 8px;
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      .hero-stat strong {
+        display: block;
+        font-size: 18px;
+      }
+
+      .hero-stat span {
+        color: #bdd0c7;
+        font-size: 12px;
+      }
+
+      .promo {
+        display: grid;
+        align-content: center;
+        gap: 8px;
+        border-radius: 8px;
+        padding: 18px;
+        background: #f0bd4f;
+        color: #1e1a10;
+      }
+
+      .promo strong {
+        font-size: 24px;
+      }
+
+      .section-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      h2 {
+        font-size: 20px;
+      }
+
+      .search {
+        box-sizing: border-box;
+        width: 100%;
+        border: 1px solid #ccd8d1;
+        border-radius: 8px;
+        padding: 11px 12px;
+        background: #f7faf8;
+      }
+
+      .categories {
+        display: grid;
+        gap: 8px;
+        margin-top: 16px;
+      }
+
+      .category {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        border-radius: 8px;
+        padding: 11px 12px;
+        background: transparent;
+        color: #17211c;
+        text-align: left;
+      }
+
+      .category:hover,
+      .category[data-active="true"] {
+        background: #e7f1ed;
+      }
+
+      .category span:last-child {
+        color: #66756d;
+        font-size: 12px;
+      }
+
+      .menu-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+        gap: 14px;
+      }
+
+      .dish {
+        display: grid;
+        grid-template-rows: 132px 1fr;
+        overflow: hidden;
+        border: 1px solid #d9e2dc;
+        border-radius: 8px;
+        background: #ffffff;
+      }
+
+      .dish-visual {
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg, #1d7b5f, #f0bd4f);
+        color: #ffffff;
+        font-size: 42px;
+        font-weight: 900;
+      }
+
+      .dish-body {
+        display: grid;
+        gap: 10px;
+        padding: 14px;
+      }
+
+      .dish-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .badge {
+        border-radius: 999px;
+        padding: 4px 8px;
+        background: #eaf1ed;
+        color: #516259;
+        font-size: 12px;
+      }
+
+      .dish-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .price {
+        font-size: 18px;
+        font-weight: 850;
+      }
+
+      .add-button,
+      .checkout-button {
+        border-radius: 8px;
+        padding: 10px 12px;
+        background: #1d7b5f;
+        color: #ffffff;
+        font-weight: 800;
+      }
+
+      .cart h2 {
+        margin-bottom: 12px;
+      }
+
+      .cart-items {
+        display: grid;
+        gap: 10px;
+      }
+
+      .cart-item {
+        display: grid;
+        gap: 8px;
+        border: 1px solid #d9e2dc;
+        border-radius: 8px;
+        padding: 12px;
+        background: #f8faf8;
+      }
+
+      .cart-item-top,
+      .quantity-row,
+      .total-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .quantity-controls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .quantity-button {
+        display: grid;
+        width: 28px;
+        height: 28px;
+        place-items: center;
+        border-radius: 8px;
+        background: #e4eee9;
+        color: #17211c;
+        font-weight: 900;
+      }
+
+      .checkout {
+        display: grid;
+        gap: 10px;
+        margin-top: 14px;
+        border-top: 1px solid #d9e2dc;
+        padding-top: 14px;
+      }
+
+      .checkout input,
+      .checkout select {
+        box-sizing: border-box;
+        width: 100%;
+        border: 1px solid #ccd8d1;
+        border-radius: 8px;
+        padding: 10px 11px;
+        background: #ffffff;
+      }
+
+      .total-row {
+        color: #516259;
+      }
+
+      .total-row strong {
+        color: #17211c;
+      }
+
+      .empty {
+        border: 1px dashed #becdc5;
+        border-radius: 8px;
+        padding: 18px;
+        color: #66756d;
+        text-align: center;
+      }
+
+      .orders {
+        display: grid;
+        gap: 8px;
+        margin-top: 16px;
+      }
+
+      .order {
+        border-radius: 8px;
+        padding: 11px;
+        background: #edf5f1;
+        font-size: 13px;
+      }
+
+      @media (max-width: 980px) {
+        body {
+          overflow: auto;
+        }
+
+        .shell {
+          height: auto;
+          min-height: 100vh;
+        }
+
+        .layout {
+          grid-template-columns: 1fr;
+        }
+
+        .hero {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar,
+        .cart,
+        .content {
+          overflow: visible;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="titlebar">
+        <div class="titlebar-left">
+          <div class="mark">F</div>
+          <div class="app-name">Forkline Kitchen</div>
+          <div class="location">Delivery dashboard</div>
+        </div>
+        <div class="window-controls">
+          <button class="window-control" type="button" data-command="minimizeWindow" aria-label="Minimize">-</button>
+          <button class="window-control" type="button" data-command="toggleMaximizeWindow" aria-label="Maximize">□</button>
+          <button class="window-control" type="button" data-command="closeWindow" aria-label="Close">×</button>
+        </div>
+      </header>
+      <div class="layout">
+        <aside class="sidebar">
+          <input class="search" id="search" placeholder="Search dishes">
+          <div class="categories" id="categories"></div>
+          <div class="orders" id="orders"></div>
+        </aside>
+        <main class="content">
+          <section class="hero">
+            <div>
+              <h1>Fast dinner ordering for serious appetite</h1>
+              <p>Choose dishes, tune the cart, place an order, and keep the flow inside one tiny NanoTron window.</p>
+              <div class="hero-stats">
+                <div class="hero-stat">
+                  <strong>25-40</strong>
+                  <span>minutes</span>
+                </div>
+                <div class="hero-stat">
+                  <strong>4.8</strong>
+                  <span>rating</span>
+                </div>
+                <div class="hero-stat">
+                  <strong>18</strong>
+                  <span>dishes</span>
+                </div>
+              </div>
+            </div>
+            <div class="promo">
+              <strong>Lunch set -15%</strong>
+              <span>Applies automatically for carts over 1800 ₽.</span>
+            </div>
+          </section>
+          <div class="section-title">
+            <h2 id="menu-title">Popular</h2>
+            <span id="menu-count"></span>
+          </div>
+          <section class="menu-grid" id="menu"></section>
+        </main>
+        <aside class="cart">
+          <h2>Your order</h2>
+          <div class="cart-items" id="cart-items"></div>
+          <form class="checkout" id="checkout-form">
+            <input id="customer-name" placeholder="Name" autocomplete="name">
+            <input id="customer-address" placeholder="Address or pickup note" autocomplete="street-address">
+            <select id="payment-method">
+              <option value="card">Card</option>
+              <option value="cash">Cash</option>
+              <option value="terminal">Courier terminal</option>
+            </select>
+            <div class="total-row">
+              <span>Subtotal</span>
+              <strong id="subtotal">0 ₽</strong>
+            </div>
+            <div class="total-row">
+              <span>Service</span>
+              <strong id="service">99 ₽</strong>
+            </div>
+            <div class="total-row">
+              <span>Discount</span>
+              <strong id="discount">0 ₽</strong>
+            </div>
+            <div class="total-row">
+              <span>Total</span>
+              <strong id="total">0 ₽</strong>
+            </div>
+            <button class="checkout-button" type="submit">Place order</button>
+          </form>
+        </aside>
+      </div>
+    </div>
+    <script>
+      const serviceFee = 99;
+      const discountThreshold = 1800;
+      const discountRate = 0.15;
+      const categories = ["Popular", "Bowls", "Pizza", "Grill", "Desserts", "Drinks"];
+      const dishes = [
+        { id: "ramen-bowl", category: "Popular", name: "Miso ramen bowl", description: "Noodles, egg, mushrooms, sesame broth", price: 690, time: "18 min", tag: "Hot", mark: "R" },
+        { id: "smash-burger", category: "Popular", name: "Smash burger", description: "Double beef, cheddar, pickles, house sauce", price: 760, time: "16 min", tag: "Bestseller", mark: "B" },
+        { id: "salmon-bowl", category: "Bowls", name: "Salmon rice bowl", description: "Salmon, rice, avocado, cucumber, nori", price: 940, time: "14 min", tag: "Fresh", mark: "S" },
+        { id: "chicken-bowl", category: "Bowls", name: "Teriyaki chicken bowl", description: "Chicken, rice, broccoli, ginger glaze", price: 640, time: "13 min", tag: "Lean", mark: "T" },
+        { id: "pepperoni", category: "Pizza", name: "Pepperoni crisp", description: "Tomato, mozzarella, pepperoni, oregano", price: 890, time: "22 min", tag: "Classic", mark: "P" },
+        { id: "stracciatella", category: "Pizza", name: "Stracciatella verde", description: "Pesto, stracciatella, zucchini, basil", price: 980, time: "21 min", tag: "Green", mark: "V" },
+        { id: "ribeye", category: "Grill", name: "Ribeye steak plate", description: "Ribeye, potato cream, pepper sauce", price: 1490, time: "24 min", tag: "Premium", mark: "G" },
+        { id: "shrimp", category: "Grill", name: "Charred shrimp", description: "Shrimp, lime butter, herbs, crispy rice", price: 1180, time: "17 min", tag: "Sea", mark: "C" },
+        { id: "tiramisu", category: "Desserts", name: "Tiramisu cup", description: "Mascarpone, espresso, cocoa, biscuit", price: 390, time: "5 min", tag: "Cold", mark: "D" },
+        { id: "cheesecake", category: "Desserts", name: "Basque cheesecake", description: "Burnt top, vanilla cream, berry sauce", price: 430, time: "6 min", tag: "Sweet", mark: "K" },
+        { id: "lemonade", category: "Drinks", name: "Yuzu lemonade", description: "Yuzu, lemon, mint, sparkling water", price: 290, time: "3 min", tag: "Sparkling", mark: "Y" },
+        { id: "coffee", category: "Drinks", name: "Cold brew tonic", description: "Cold brew, tonic, orange peel", price: 310, time: "4 min", tag: "Caffeine", mark: "C" }
+      ];
+      const cart = new Map();
+      const orders = [];
+
+      const categoriesElement = document.getElementById("categories");
+      const menuElement = document.getElementById("menu");
+      const menuTitle = document.getElementById("menu-title");
+      const menuCount = document.getElementById("menu-count");
+      const searchElement = document.getElementById("search");
+      const cartItemsElement = document.getElementById("cart-items");
+      const subtotalElement = document.getElementById("subtotal");
+      const serviceElement = document.getElementById("service");
+      const discountElement = document.getElementById("discount");
+      const totalElement = document.getElementById("total");
+      const checkoutForm = document.getElementById("checkout-form");
+      const customerName = document.getElementById("customer-name");
+      const customerAddress = document.getElementById("customer-address");
+      const paymentMethod = document.getElementById("payment-method");
+      const ordersElement = document.getElementById("orders");
+      let activeCategory = "Popular";
+
+      function formatPrice(value) {
+        return `${Math.round(value).toLocaleString("ru-RU")} ₽`;
+      }
+
+      function renderCategories() {
+        categoriesElement.replaceChildren(...categories.map((category) => {
+          const button = document.createElement("button");
+          const count = dishes.filter((dish) => dish.category === category).length;
+          button.className = "category";
+          button.type = "button";
+          button.dataset.active = String(category === activeCategory);
+          button.innerHTML = `<span>${category}</span><span>${count}</span>`;
+          button.addEventListener("click", () => {
+            activeCategory = category;
+            render();
+          });
+          return button;
+        }));
+      }
+
+      function getFilteredDishes() {
+        const query = searchElement.value.trim().toLowerCase();
+        return dishes.filter((dish) => {
+          const matchesCategory = dish.category === activeCategory;
+          const matchesQuery = !query || `${dish.name} ${dish.description} ${dish.tag}`.toLowerCase().includes(query);
+          return matchesCategory && matchesQuery;
+        });
+      }
+
+      function renderMenu() {
+        const filteredDishes = getFilteredDishes();
+        menuTitle.textContent = activeCategory;
+        menuCount.textContent = `${filteredDishes.length} items`;
+        menuElement.replaceChildren(...filteredDishes.map(createDishElement));
+      }
+
+      function createDishElement(dish) {
+        const article = document.createElement("article");
+        article.className = "dish";
+        article.innerHTML = `
+          <div class="dish-visual">${dish.mark}</div>
+          <div class="dish-body">
+            <h3>${dish.name}</h3>
+            <p>${dish.description}</p>
+            <div class="dish-meta">
+              <span class="badge">${dish.time}</span>
+              <span class="badge">${dish.tag}</span>
+            </div>
+            <div class="dish-footer">
+              <span class="price">${formatPrice(dish.price)}</span>
+              <button class="add-button" type="button">Add</button>
+            </div>
+          </div>
+        `;
+        article.querySelector("button").addEventListener("click", () => addToCart(dish.id));
+        return article;
+      }
+
+      function addToCart(dishId) {
+        const existingQuantity = cart.get(dishId) || 0;
+        cart.set(dishId, existingQuantity + 1);
+        renderCart();
+      }
+
+      function changeQuantity(dishId, delta) {
+        const nextQuantity = (cart.get(dishId) || 0) + delta;
+
+        if (nextQuantity <= 0) {
+          cart.delete(dishId);
+        } else {
+          cart.set(dishId, nextQuantity);
+        }
+
+        renderCart();
+      }
+
+      function calculateCart() {
+        const items = Array.from(cart.entries()).map(([dishId, quantity]) => {
+          const dish = dishes.find((candidate) => candidate.id === dishId);
+          return { ...dish, quantity, lineTotal: dish.price * quantity };
+        });
+        const subtotal = items.reduce((sum, item) => sum + item.lineTotal, 0);
+        const discount = subtotal >= discountThreshold ? subtotal * discountRate : 0;
+        const total = subtotal > 0 ? subtotal + serviceFee - discount : 0;
+        return { items, subtotal, discount, total };
+      }
+
+      function renderCart() {
+        const calculation = calculateCart();
+
+        if (calculation.items.length === 0) {
+          cartItemsElement.innerHTML = `<div class="empty">Cart is empty</div>`;
+        } else {
+          cartItemsElement.replaceChildren(...calculation.items.map(createCartItemElement));
+        }
+
+        subtotalElement.textContent = formatPrice(calculation.subtotal);
+        serviceElement.textContent = calculation.subtotal > 0 ? formatPrice(serviceFee) : formatPrice(0);
+        discountElement.textContent = calculation.discount > 0 ? `-${formatPrice(calculation.discount)}` : formatPrice(0);
+        totalElement.textContent = formatPrice(calculation.total);
+      }
+
+      function createCartItemElement(item) {
+        const element = document.createElement("div");
+        element.className = "cart-item";
+        element.innerHTML = `
+          <div class="cart-item-top">
+            <strong>${item.name}</strong>
+            <span>${formatPrice(item.lineTotal)}</span>
+          </div>
+          <div class="quantity-row">
+            <span>${formatPrice(item.price)}</span>
+            <div class="quantity-controls">
+              <button class="quantity-button" type="button" data-delta="-1">-</button>
+              <strong>${item.quantity}</strong>
+              <button class="quantity-button" type="button" data-delta="1">+</button>
+            </div>
+          </div>
+        `;
+        for (const button of element.querySelectorAll("button")) {
+          button.addEventListener("click", () => changeQuantity(item.id, Number(button.dataset.delta)));
+        }
+        return element;
+      }
+
+      async function placeOrder(event) {
+        event.preventDefault();
+        const calculation = calculateCart();
+
+        if (calculation.items.length === 0) {
+          return;
+        }
+
+        const order = await window.placeOrder({
+          customerName: customerName.value,
+          address: customerAddress.value,
+          paymentMethod: paymentMethod.value,
+          items: calculation.items.map(({ id, name, price, quantity, lineTotal }) => ({ id, name, price, quantity, lineTotal })),
+          total: calculation.total
+        });
+
+        orders.unshift(order);
+        cart.clear();
+        checkoutForm.reset();
+        renderCart();
+        renderOrders();
+      }
+
+      function renderOrders() {
+        if (orders.length === 0) {
+          ordersElement.innerHTML = `<div class="order">No orders yet</div>`;
+          return;
+        }
+
+        ordersElement.replaceChildren(...orders.slice(0, 4).map((order) => {
+          const element = document.createElement("div");
+          element.className = "order";
+          element.textContent = `${formatPrice(order.total)} · ${order.status} · ${new Date(order.createdAt).toLocaleTimeString()}`;
+          return element;
+        }));
+      }
+
+      function render() {
+        renderCategories();
+        renderMenu();
+        renderCart();
+        renderOrders();
+      }
+
+      document.querySelector(".titlebar").addEventListener("mousedown", async (event) => {
+        if (event.button === 0 && !event.target.closest("button, input, select, textarea")) {
+          await window.beginWindowDrag();
+        }
+      });
+
+      document.addEventListener("click", async (event) => {
+        const commandElement = event.target.closest("[data-command]");
+
+        if (!commandElement) {
+          return;
+        }
+
+        const command = commandElement.dataset.command;
+
+        if (command === "minimizeWindow") {
+          await window.minimizeWindow();
+          return;
+        }
+
+        if (command === "toggleMaximizeWindow") {
+          await window.toggleMaximizeWindow();
+          return;
+        }
+
+        if (command === "closeWindow") {
+          await window.closeWindow();
+        }
+      });
+
+      searchElement.addEventListener("input", renderMenu);
+      checkoutForm.addEventListener("submit", placeOrder);
+      window.getRestaurantState().then((state) => {
+        orders.push(...state.orders);
+        render();
+      });
+    </script>
+  </body>
+</html>
